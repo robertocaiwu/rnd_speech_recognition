@@ -1,20 +1,24 @@
-KALDI_ROOT = /home/rob/speech_toolkit/kaldi
+CFLAGS = -Wall -pthread -std=c++11 -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare \
+         -Wno-unused-local-typedefs -Winit-self -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -DHAVE_ATLAS \
+         `pkg-config --cflags kaldi-asr` -g
 
-CFLAGS = -I$(KALDI_ROOT)/src -std=c++11 -msse -msse2 -Wall -I.. -pthread -DKALDI_DOUBLEPRECISION=0 -Wno-sign-compare \
-         -Wno-unused-local-typedefs -Winit-self -Wno-unused-variable -DHAVE_EXECINFO_H=1 -DHAVE_CXXABI_H -DHAVE_ATLAS \
-		 -I$(KALDI_ROOT)/tools/ATLAS/include -I$(KALDI_ROOT)/tools/openfst/include -g
+LDFLAGS = -rdynamic -lm -lpthread -ldl `pkg-config --libs kaldi-asr`
 
-LDFLAGS = -rdynamic -L$(KALDI_ROOT)/tools/openfst/lib -L$(KALDI_ROOT)/src/lib $(ATLASLIBS) \
-          -lfst -lm -lpthread -ldl  -lkaldi-decoder \
-		  -lkaldi-lat   -lkaldi-fstext   -lkaldi-hmm -lkaldi-feat   -lkaldi-transform \
-		  -lkaldi-gmm   -lkaldi-tree   -lkaldi-util  -lkaldi-matrix \
-		  -lkaldi-base  -lkaldi-nnet3  -lkaldi-online2
+.PHONY:	clean dist upload
 
 all: kaldiasr/nnet3.so
 
 kaldiasr/nnet3.so:	kaldiasr/nnet3.pyx kaldiasr/nnet3_wrappers.cpp kaldiasr/nnet3_wrappers.h
-	CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" python setup.py build_ext --inplace
+	python setup.py build_ext --inplace
+
+dist:
+	python setup.py sdist
+	# python setup.py bdist_wheel
+
+upload:
+	twine upload dist/*
 
 clean:
-	rm -f kaldiasr/nnet3.cpp kaldiasr/nnet3.so kaldiasr/*.pyc
-	rm -rf build
+	rm -f kaldiasr/nnet3.cpp kaldiasr/nnet3.so kaldiasr/*.pyc MANIFEST
+	rm -rf build dist kaldiasr.egg-info py_kaldi_asr.egg-info
+
