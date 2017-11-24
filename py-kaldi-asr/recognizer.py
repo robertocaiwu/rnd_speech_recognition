@@ -8,13 +8,14 @@ from kaldiasr.nnet3 import KaldiNNet3OnlineModel, KaldiNNet3OnlineDecoder
 MODELDIR    = 'data/models/nnet3_de'
 MODEL       = 'nnet_tdnn_a'
 WAVFILES    = [ 'data/2015-01-27-12-32-58_Kinect-Beam.wav', 'data/2015-01-27-12-34-46_Kinect-Beam.wav']
+DATADIR     = './data/'
 
 # Options
-CHUNK = 128 # The size of each audio chunk coming from the input device.
+CHUNK = 1024#128 # The size of each audio chunk coming from the input device.
 FORMAT = pyaudio.paInt16 # Should not be changed, as this format is best for speech recognition.
 CHANNELS = 1
-RATE = 16000 # Speech recognition only works well with this rate.  Don't change unless your microphone demands it.
-RECORD_SECONDS = 8 # Number of seconds to record, can be changed.
+RATE = 16000 #16000 # Speech recognition only works well with this rate.  Don't change unless your microphone demands it.
+RECORD_SECONDS = 3 # Number of seconds to record, can be changed.
 WAVE_OUTPUT_FILENAME = "output.wav" # Where to save the recording from the microphone.
 
 def save_audio(wav_file):
@@ -22,14 +23,17 @@ def save_audio(wav_file):
 	Stream audio from an input device and save it.
 	"""
 	p = pyaudio.PyAudio()
+	
+	device = 0
+	# p.get_device_info_by_index(0)
 
 	stream = p.open(
 		format=FORMAT,
 		channels=CHANNELS,
 		rate=RATE,
 		input=True,
-		frames_per_buffer=CHUNK
-		# input_device_index=device
+		frames_per_buffer=CHUNK,
+		input_device_index=device
 	)
 
 	print("recording...")
@@ -76,6 +80,7 @@ if __name__ == '__main__':
 			save_audio(WAVE_OUTPUT_FILENAME)
 			decoder = KaldiNNet3OnlineDecoder (kaldi_model)
 			WAVFILE = DATADIR + WAVE_OUTPUT_FILENAME
+			print(WAVFILE)
 			if decoder.decode_wav_file(WAVFILE):
 				s = decoder.get_decoded_string()
 				print "Utterance: ", unicode(s[0], 'utf-8').encode('utf-8')
