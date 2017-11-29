@@ -17,8 +17,8 @@ DATADIR     = './data/'
 CHUNK = 1024#128 # The size of each audio chunk coming from the input device.
 FORMAT = pyaudio.paInt16 # Should not be changed, as this format is best for speech recognition.
 CHANNELS = 1
-RATE = 16000 #16000 # Speech recognition only works well with this rate.  Don't change unless your microphone demands it.
-RECORD_SECONDS = 3 # Number of seconds to record, can be changed.
+RATE = 48000 #16000 # Speech recognition only works well with this rate.  Don't change unless your microphone demands it.
+RECORD_SECONDS = 5 # Number of seconds to record, can be changed.
 WAVE_OUTPUT_FILENAME_48 = "output48.wav" # Where to save the recording from the microphone.
 WAVE_OUTPUT_FILENAME_16 = "output16.wav"
 def downsampleWav(src, dst, inrate=48000, outrate=16000, inchannels=1, outchannels=1):
@@ -104,7 +104,7 @@ def save_audio(wav_file):
 	wf.writeframes(b''.join(frames))
 	wf.close()
 
-	downsampleWav(DATADIR + wav_file, DATADIR + wav_file)
+	downsampleWav(DATADIR + wav_file, DATADIR + WAVE_OUTPUT_FILENAME_16)
 
 # Run the thing!
 if __name__ == '__main__':
