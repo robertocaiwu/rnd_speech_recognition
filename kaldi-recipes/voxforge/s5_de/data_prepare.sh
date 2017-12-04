@@ -95,6 +95,13 @@ then
   cp data/local/train.spk2utt data/train/spk2utt
 fi
 
+## Preparing the test dataset from kaldi-tuda-de
+RAWDATA=../../kaldi-tuda-de/s5/data/wav/german-speechdata-package-v2
+FILTERBYNAME="*.xml"
+find $RAWDATA/test/$FILTERBYNAME -type f > data/waveIDs.txt
+python local/data_prepare.py -f data/waveIDs.txt
+utils/utt2spk_to_spk2utt.pl data/test/utt2spk > data/test/spk2utt
+
 # Get freely available phoneme dictionaries, if they are not already downloaded
 if [ ! -f data/lexicon/de.txt ]
 then

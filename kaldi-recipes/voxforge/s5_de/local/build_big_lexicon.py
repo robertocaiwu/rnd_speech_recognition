@@ -200,7 +200,7 @@ def importBASWordforms(myid,latexCodes=True):
             #check if we got all strange characters
             for ch in line:
                 if ch not in alphabet_de:
-                    print 'Warning, encountered non-german character',ch,'in word: ',line
+                    print 'Warning, encountered non-german character',ch.encode('utf-8'),'in word: ',line.encode('utf-8')
 
             if line != '':
                 phoneme_dict[line] = []
