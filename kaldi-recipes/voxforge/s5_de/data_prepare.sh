@@ -149,6 +149,21 @@ mv data/lang/* data/lang/old
 #Prepare phoneme data for Kaldi
 utils/prepare_lang.sh data/local/dict "<UNK>" data/local/lang data/lang
 
+mkdir -p data/local/lm/
+
+if [ ! -f data/local/lm/cleaned.gz ]
+then
+    wget --directory-prefix=data/local/lm/ http://speech.tools/kaldi_tuda_de/German_sentences_8mil_filtered_maryfied.txt.gz
+    mv data/local/lm/German_sentences_8mil_filtered_maryfied.txt.gz data/local/lm/cleaned.gz
+fi
+
+#Prepare ARPA LM
+#If you wont to build your own:
+local/build_lm.sh
+
+#Transform LM into Kaldi LM format
+local/format_data.sh
+
 # Now make MFCC features.
 for x in train ; do
     utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
