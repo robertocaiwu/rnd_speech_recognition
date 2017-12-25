@@ -46,7 +46,8 @@ RAWDATA=data/voxforge_train
 # Filter by name
 FILTERBYNAME="*.xml"
 
-find $RAWDATA/$FILTERBYNAME -type f > data/waveIDs.txt
+# find $RAWDATA/$FILTERBYNAME -type f > data/waveIDs.txt
+python local/find_waveID.py -d data/voxforge_train
 
 RAWDATA_Test=../../kaldi-tuda-de/s5/data/wav/german-speechdata-package-v2
 find $RAWDATA_Test/test/$FILTERBYNAME -type f >> data/waveIDs.txt
