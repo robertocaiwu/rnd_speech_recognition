@@ -37,8 +37,8 @@ python local/prepare_dir_structure.py
 # # Download German VoxForge dataset and extract it
 # getdata.sh
 
-# # Adapt VoxForge dataset into TUDA format
-# python local/Adapt_tuda.py
+# Adapt VoxForge dataset into TUDA format
+python local/Adapt_tuda.py
 
 # Test/Train data prepare
 RAWDATA=data/voxforge_train

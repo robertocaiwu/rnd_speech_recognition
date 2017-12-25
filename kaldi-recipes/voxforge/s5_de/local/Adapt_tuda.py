@@ -145,7 +145,7 @@ def audio_convert (cfn, subdir, fn, audiodir):
 
     return w16filename
 if __name__ == '__main__':
-    train_dir = '../data/train_de'
+    train_dir = './data/train_de'
     check_directories(train_dir)
-    audio_directory = '../data/extracted'
+    audio_directory = './data/extracted'
     audio_directories = get_audio_directories(audio_directory)
