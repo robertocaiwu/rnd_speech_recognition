@@ -31,22 +31,24 @@ export LC_ALL=C
 echo "training jobs: $nJobs"
 echo "decode jobs: $nDecodeJobs"
 
-# #Prepare phoneme data for Kaldi
-# utils/prepare_lang.sh data/local/dict "<UNK>" data/local/lang data/lang
+#Prepare phoneme data for Kaldi
+utils/prepare_lang.sh data/local/dict "<UNK>" data/local/lang data/lang
 
-# Now make MFCC features.
-# time=$(date +"%Y-%m-%d %H:%M:%S")
-# echo "Now start making MFCC features. $time" | tee -a $stage.log
-# for x in train test dev ; do
-#     utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
-#     steps/make_mfcc.sh --cmd "$train_cmd" --nj $nJobs data/$x exp/make_mfcc/$x $mfccdir
-#     utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
-#     steps/compute_cmvn_stats.sh data/$x exp/make_mfcc/$x $mfccdir
-#     utils/fix_data_dir.sh data/$x
-# done
-# time=$(date +"%Y-%m-%d %H:%M:%S")
-# echo "Done making MFCC features and computing CMVN Stats. $time" | tee -a $stage.log
-# #change this to test, if you want results on the test set
+utils/validate_lang.pl data/lang
+
+Now make MFCC features.
+time=$(date +"%Y-%m-%d %H:%M:%S")
+echo "Now start making MFCC features. $time" | tee -a $stage.log
+for x in train test dev ; do
+    utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
+    steps/make_mfcc.sh --cmd "$train_cmd" --nj $nJobs data/$x exp/make_mfcc/$x $mfccdir
+    utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
+    steps/compute_cmvn_stats.sh data/$x exp/make_mfcc/$x $mfccdir
+    utils/fix_data_dir.sh data/$x
+done
+time=$(date +"%Y-%m-%d %H:%M:%S")
+echo "Done making MFCC features and computing CMVN Stats. $time" | tee -a $stage.log
+#change this to test, if you want results on the test set
 
 testDir=test
 # Here we start the AM
@@ -56,7 +58,7 @@ for x in 1000 2000 3000 5000 10000 12425; do
   # Train monophone models on a subset of the data
   time utils/subset_data_dir.sh data/train $x data/s1/train.$x  ;
 
-  for it in 1 2 3 4; do
+  for it in 1 2 3 4 5; do
 
     time=$(date +"%Y-%m-%d %H:%M:%S")
     echo "Train iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
@@ -99,8 +101,8 @@ steps/align_si.sh --nj $nJobs --cmd "$train_cmd" \
   data/s1/train.12425 data/lang exp/s1/mono.1.12425 exp/s1/mono.1.12425_ali || exit 1;
 
 
-for it in 1; do
-  for s in 1500 ; do #  2000 2500; do
+for it in 1 2 3 4 5; do
+  for s in 1500 2000 2500; do
     for g in 20000; do
 
       time=$(date +"%Y-%m-%d %H:%M:%S")
@@ -121,23 +123,23 @@ for it in 1; do
     done
   done
 
-  # for s in 2000; do
-  #   for g in 10000 30000 40000; do
-  #     time=$(date +"%Y-%m-%d %H:%M:%S")
-  #     echo "Start standard triphone models training: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-  #     # train tri1 [first triphone pass]
-  #     steps/train_deltas.sh --cmd "$train_cmd" \
-  #       $s $g data/train data/lang exp/s1/mono.1.12425_ali exp/s1/tri1.$it.$s.$g || exit 1;
-  #
-  #     time=$(date +"%Y-%m-%d %H:%M:%S")
-  #     echo "Start standard triphone models graph: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-  #     # First triphone decoding
-  #     time utils/mkgraph.sh data/lang_test exp/s1/tri1.$it.$s.$g exp/s1/tri1.$it.$s.$g/graph || exit 1;
-  #
-  #     time=$(date +"%Y-%m-%d %H:%M:%S")
-  #     echo "Start standard triphone models decoding: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-  #     time steps/decode.sh  --nj $nDecodeJobs --cmd "$decode_cmd" \
-  #       exp/s1/tri1.$it.$s.$g/graph data/$testDir exp/s1/tri1.$it.$s.$g/decode
-  #   done
-  # done
+  for s in 2000; do
+    for g in 10000 30000 40000; do
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models training: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      # train tri1 [first triphone pass]
+      steps/train_deltas.sh --cmd "$train_cmd" \
+        $s $g data/train data/lang exp/s1/mono.1.12425_ali exp/s1/tri1.$it.$s.$g || exit 1;
+
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models graph: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      # First triphone decoding
+      time utils/mkgraph.sh data/lang_test exp/s1/tri1.$it.$s.$g exp/s1/tri1.$it.$s.$g/graph || exit 1;
+
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models decoding: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      time steps/decode.sh  --nj $nDecodeJobs --cmd "$decode_cmd" \
+        exp/s1/tri1.$it.$s.$g/graph data/$testDir exp/s1/tri1.$it.$s.$g/decode
+    done
+  done
 done

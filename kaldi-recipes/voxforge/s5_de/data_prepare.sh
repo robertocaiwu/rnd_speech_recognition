@@ -34,80 +34,34 @@ utf8()
 # Prepares KALDI dir structure and asks you where to store mfcc vectors and the final models (both can take up significant space)
 python local/prepare_dir_structure.py
 
-# The number of parallel jobs to be started for some parts of the recipe
-# Make sure you have enough resources(CPUs and RAM) to accomodate this number of jobs
-njobs=8
+# # Download German VoxForge dataset and extract it
+# getdata.sh
 
-# This recipe can select subsets of VoxForge's data based on the "Pronunciation dialect"
-# field in VF's etc/README files.
-# dialects="()"
+# # Adapt VoxForge dataset into TUDA format
+# python local/Adapt_tuda.py
 
-# The number of randomly selected speakers to be put in the test set
-nspk_test=1
+# Test/Train data prepare
+RAWDATA=data/voxforge_train
 
-# Test-time language model order
-lm_order=2
-
-# Word position dependent phones?
-pos_dep_phones=true
-
-# The directory below will be used to link to a subset of the user directories
-# based on various criteria(currently just speaker's accent)
-selected=${DATA_ROOT}/selected
-
-# The user of this script could change some of the above parameters. Example:
-# /bin/bash run.sh --pos-dep-phones false
-. utils/parse_options.sh || exit 1
-
-[[ $# -ge 1 ]] && { echo "Unexpected arguments"; exit 1; }
-
-# Select a subset of the data to use
-# WARNING: the destination directory will be deleted if it already exists!
-
-# echo "selecting dialect"
-local/voxforge_select.sh --dialect $dialects \
-  ${DATA_ROOT}/extracted ${selected} || exit 1
-#
-# # Mapping the anonymous speakers to unique IDs
-echo "Mapping anonymus speakers to unique IDs"
-local/voxforge_map_anonymous.sh ${selected} || exit 1
-
-# Initial normalization of the data
-echo "Initial normalization of the data"
-local/voxforge_data_prep.sh --nspk_test ${nspk_test} ${selected} || exit 1
-
-mkdir -p /data/train/
-if [ ! -f data/train/text ]
-then
-  cp data/local/train_trans.txt data/train/text
-fi
-
-if [ ! -f data/train/wav.scp ]
-then
-  cp data/local/train_wav.scp data/train/wav.scp
-fi
-if [ ! -f data/train/utt2spk ]
-then
-  cp data/local/train.utt2spk data/train/utt2spk
-fi
-if [ ! -f data/train/spk2utt ]
-then
-  cp data/local/train.spk2utt data/train/spk2utt
-fi
-
-## Preparing the test dataset from kaldi-tuda-de
-RAWDATA=../../kaldi-tuda-de/s5/data/wav/german-speechdata-package-v2
+# Filter by name
 FILTERBYNAME="*.xml"
-find $RAWDATA/test/$FILTERBYNAME -type f > data/waveIDs.txt
+
+find $RAWDATA/$FILTERBYNAME -type f > data/waveIDs.txt
+
+RAWDATA_Test=../../kaldi-tuda-de/s5/data/wav/german-speechdata-package-v2
+find $RAWDATA_Test/test/$FILTERBYNAME -type f >> data/waveIDs.txt
+
 python local/data_prepare.py -f data/waveIDs.txt
-utils/utt2spk_to_spk2utt.pl data/test/utt2spk > data/test/spk2utt
+for x in train test ; do
+  utils/utt2spk_to_spk2utt.pl data/$x/utt2spk > data/$x/spk2utt
+done
 
 # Get freely available phoneme dictionaries, if they are not already downloaded
 if [ ! -f data/lexicon/de.txt ]
 then
     wget --directory-prefix=data/lexicon/ https://raw.githubusercontent.com/marytts/marytts-lexicon-de/master/modules/de/lexicon/de.txt
-    #data/lexicon/train.txt only exists after kaldi-tuda-de has been run
-    # echo "../../kaldi-tuda-de/s5/data/lexicon/train.txt">> data/lexicon_ids.txt
+    # wget --directory-prefix=data/lexicon/ https://raw.githubusercontent.com/marytts/marytts/master/marytts-languages/marytts-lang-de/lib/modules/de/lexicon/de.txt
+    echo "data/lexicon/train.txt">> data/lexicon_ids.txt
     echo "data/lexicon/de.txt">> data/lexicon_ids.txt
 fi
 
@@ -139,36 +93,36 @@ fi
 
 #Transform freely available dictionaries into lexiconp.txt file + extra files
 mkdir -p data/local/dict/
+echo 'build_big_lexicon'
 python local/build_big_lexicon.py -f data/lexicon_ids.txt -e data/local/combined.dict
+echo 'export_lexicon'
 python local/export_lexicon.py -f data/local/combined.dict -o data/local/dict/lexiconp.txt
-#
-# #Move old lang dir if it exists
+
+#Move old lang dir if it exists
 mkdir -p data/lang/old
 mv data/lang/* data/lang/old
 
+export LC_ALL=C
+
 #Prepare phoneme data for Kaldi
 utils/prepare_lang.sh data/local/dict "<UNK>" data/local/lang data/lang
+
+#Todo: download source sentence archive for LM building
 
 mkdir -p data/local/lm/
 
 if [ ! -f data/local/lm/cleaned.gz ]
 then
-    wget --directory-prefix=data/local/lm/ http://speech.tools/kaldi_tuda_de/German_sentences_8mil_filtered_maryfied.txt.gz
-    mv data/local/lm/German_sentences_8mil_filtered_maryfied.txt.gz data/local/lm/cleaned.gz
+   wget --directory-prefix=data/local/lm/ http://speech.tools/kaldi_tuda_de/German_sentences_8mil_filtered_maryfied.txt.gz
+   mv data/local/lm/German_sentences_8mil_filtered_maryfied.txt.gz data/local/lm/cleaned.gz
 fi
 
-#Prepare ARPA LM
-#If you wont to build your own:
+# Prepare ARPA LM
+
+# If you wont to build your own:
+echo "local/build_lm.sh"
 local/build_lm.sh
 
-#Transform LM into Kaldi LM format
+# Transform LM into Kaldi LM format
+echo "local/format_data.sh"
 local/format_data.sh
-
-# Now make MFCC features.
-for x in train ; do
-    utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
-    steps/make_mfcc.sh --cmd "$train_cmd" --nj $nJobs data/$x exp/make_mfcc/$x $mfccdir
-    utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
-    steps/compute_cmvn_stats.sh data/$x exp/make_mfcc/$x $mfccdir
-    utils/fix_data_dir.sh data/$x
-done

@@ -42,13 +42,16 @@ FILTERBYNAME="*.xml"
 
 find $RAWDATA/*/$FILTERBYNAME -type f > data/waveIDs.txt
 python local/data_prepare.py -f data/waveIDs.txt
-
+for x in train test ; do
+  utils/utt2spk_to_spk2utt.pl data/$x/utt2spk > data/$x/spk2utt
+done
 
 
 # Get freely available phoneme dictionaries, if they are not already downloaded
 if [ ! -f data/lexicon/de.txt ]
 then
-    wget --directory-prefix=data/lexicon/ https://raw.githubusercontent.com/marytts/marytts/master/marytts-languages/marytts-lang-de/lib/modules/de/lexicon/de.txt
+    wget --directory-prefix=data/lexicon/ https://raw.githubusercontent.com/marytts/marytts-lexicon-de/master/modules/de/lexicon/de.txt
+    # wget --directory-prefix=data/lexicon/ https://raw.githubusercontent.com/marytts/marytts/master/marytts-languages/marytts-lang-de/lib/modules/de/lexicon/de.txt
     echo "data/lexicon/train.txt">> data/lexicon_ids.txt
     echo "data/lexicon/de.txt">> data/lexicon_ids.txt
 fi
@@ -81,9 +84,36 @@ fi
 
 #Transform freely available dictionaries into lexiconp.txt file + extra files
 mkdir -p data/local/dict/
+echo 'build_big_lexicon'
 python local/build_big_lexicon.py -f data/lexicon_ids.txt -e data/local/combined.dict
+echo 'export_lexicon'
 python local/export_lexicon.py -f data/local/combined.dict -o data/local/dict/lexiconp.txt
 
 #Move old lang dir if it exists
 mkdir -p data/lang/old
 mv data/lang/* data/lang/old
+
+export LC_ALL=C
+
+#Prepare phoneme data for Kaldi
+utils/prepare_lang.sh data/local/dict "<UNK>" data/local/lang data/lang
+
+#Todo: download source sentence archive for LM building
+
+mkdir -p data/local/lm/
+
+if [ ! -f data/local/lm/cleaned.gz ]
+then
+   wget --directory-prefix=data/local/lm/ http://speech.tools/kaldi_tuda_de/German_sentences_8mil_filtered_maryfied.txt.gz
+   mv data/local/lm/German_sentences_8mil_filtered_maryfied.txt.gz data/local/lm/cleaned.gz
+fi
+
+# Prepare ARPA LM
+
+# If you wont to build your own:
+echo "local/build_lm.sh"
+local/build_lm.sh
+
+# Transform LM into Kaldi LM format
+echo "local/format_data.sh"
+local/format_data.sh
