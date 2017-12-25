@@ -31,12 +31,12 @@ export LC_ALL=C
 echo "training jobs: $nJobs"
 echo "decode jobs: $nDecodeJobs"
 
-#Prepare phoneme data for Kaldi
-utils/prepare_lang.sh data/local/dict "<UNK>" data/local/lang data/lang
+# #Prepare phoneme data for Kaldi
+# utils/prepare_lang.sh data/local/dict "<UNK>" data/local/lang data/lang
 
 utils/validate_lang.pl data/lang
 
-Now make MFCC features.
+# Now make MFCC features.
 time=$(date +"%Y-%m-%d %H:%M:%S")
 echo "Now start making MFCC features. $time" | tee -a $stage.log
 for x in train test dev ; do

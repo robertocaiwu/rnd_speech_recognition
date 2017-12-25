@@ -31,6 +31,25 @@ export LC_ALL=C
 echo "training jobs: $nJobs"
 echo "decode jobs: $nDecodeJobs"
 
+# #Prepare phoneme data for Kaldi
+# utils/prepare_lang.sh data/local/dict "<UNK>" data/local/lang data/lang
+
+utils/validate_lang.pl data/lang
+
+# Now make MFCC features.
+time=$(date +"%Y-%m-%d %H:%M:%S")
+echo "Now start making MFCC features. $time" | tee -a $stage.log
+for x in train test ; do
+    utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
+    steps/make_mfcc.sh --cmd "$train_cmd" --nj $nJobs data/$x exp/make_mfcc/$x $mfccdir
+    utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
+    steps/compute_cmvn_stats.sh data/$x exp/make_mfcc/$x $mfccdir
+    utils/fix_data_dir.sh data/$x
+done
+time=$(date +"%Y-%m-%d %H:%M:%S")
+echo "Done making MFCC features and computing CMVN Stats. $time" | tee -a $stage.log
+#change this to test, if you want results on the test set
+
 testDir=test
 # Here we start the AM
 
@@ -78,7 +97,7 @@ echo "---done---"
 #   done
 # done
 #
-#
+
 # time=$(date +"%Y-%m-%d %H:%M:%S")
 # echo "Done training monophone models. $time" | tee -a exp/s1/$stage.log
 # # to make sure you keep the results timed and owned
