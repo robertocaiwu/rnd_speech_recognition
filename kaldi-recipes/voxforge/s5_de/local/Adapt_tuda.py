@@ -34,7 +34,7 @@ def check_directories(directory):
         print('Creating directory: ' + directory)
         os.makedirs(directory)
     else:
-        print('Directory already existst')
+        print('Directory already existst: ' + directory)
 
 def get_time(n):
     t = 1514136271.6310985
@@ -52,8 +52,12 @@ def make_xml(filename, speaker_id, sentence_id, sentence, cleaned_sentence):
     ET.SubElement(root, "gender").text = gender = 'Male'
     ET.SubElement(root, "ageclass").text = ageclass = 'NA'
     ET.SubElement(root, "sentence_id").text = sentence_id
-    ET.SubElement(root, "sentence").text = str(sentence)
-    ET.SubElement(root, "cleaned_sentence").text = str(cleaned_sentence)
+    try:
+        ET.SubElement(root, "sentence").text = str(sentence)
+        ET.SubElement(root, "cleaned_sentence").text = str(cleaned_sentence)
+    except:
+        ET.SubElement(root, "sentence").text = sentence
+        ET.SubElement(root, "cleaned_sentence").text = cleaned_sentence
     ET.SubElement(root, "corpus").text = corpus = 'WIKI'
     ET.SubElement(root, "muttersprachler").text = muttersprachler = 'Ja'
     ET.SubElement(root, "bundesland").text = bundesland = 'NA'
@@ -87,7 +91,7 @@ def get_audio_directories(audiodir):
     global transcripts
     num = 1
     newdir = '../data/voxforge_train'
-    check_directories(newdir)
+    # check_directories(newdir)
     for subdir in os.listdir(audiodir)[:]:
 
         if not '-' in subdir:
@@ -117,7 +121,9 @@ def get_audio_directories(audiodir):
 #             cfn = '%s-%s' % (subdir,key)
             cfn = get_time(num)
             w16filename = audio_convert(cfn, subdir, key, audiodir)
-            shutil.copy(w16filename,'%s/%s.wav' % (newdir,cfn))
+            if w16filename:
+                if os.path.isfile (w16filename):
+                    shutil.copy(w16filename,'%s/%s.wav' % (newdir,cfn))
             num += 1
 
 
@@ -145,7 +151,7 @@ def audio_convert (cfn, subdir, fn, audiodir):
 
     return w16filename
 if __name__ == '__main__':
-    train_dir = './data/train_de'
+    train_dir = './data/voxforge_train'
     check_directories(train_dir)
     audio_directory = './data/extracted'
     audio_directories = get_audio_directories(audio_directory)

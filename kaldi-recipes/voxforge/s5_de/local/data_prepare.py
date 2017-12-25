@@ -277,6 +277,8 @@ if __name__ == '__main__':
             check = myid+args.postfix+args.wav_extension
             if os.path.isfile(check):
                 ids.append(myid)
+            elif os.path.isfile(myid+'_Kinect-Beam'+args.wav_extension):
+                ids.append(myid)
             else:
                 print 'Warning, omitting',myid,'because I can\'t find',check
                 omitted += 1
@@ -301,12 +303,12 @@ if __name__ == '__main__':
         writeKaldiDataFolder('data/train/', train,args.postfix, args.wav_extension)
         # print 'Writing dev...'
         # writeKaldiDataFolder('data/dev/', dev, args.postfix, args.wav_extension)
-        # print 'Writing test...'
-        # writeKaldiDataFolder('data/test/', test, args.postfix, args.wav_extension)
-        # print 'Writing all...'
-        # writeKaldiDataFolder('data/all/', utterances, args.postfix, args.wav_extension)
+        print 'Writing test...'
+        writeKaldiDataFolder('data/test/', test, '_Kinect-Beam', args.wav_extension)
+        print 'Writing all...'
+        writeKaldiDataFolder('data/all/', utterances, args.postfix, args.wav_extension)
 
-        # print 'Writing phoneme dictionary for words in train/test/dev...'
-        # exportDict('data/lexicon/train.txt',utterances_phoneme_dict)
+        print 'Writing phoneme dictionary for words in train/test/dev...'
+        exportDict('data/lexicon/train.txt',utterances_phoneme_dict)
 
         print 'Done!'
