@@ -39,13 +39,13 @@ utils/validate_lang.pl data/lang
 # Now make MFCC features.
 time=$(date +"%Y-%m-%d %H:%M:%S")
 echo "Now start making MFCC features. $time" | tee -a $stage.log
-for x in train test ; do
-    utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
-    steps/make_mfcc.sh --cmd "$train_cmd" --nj $nJobs data/$x exp/make_mfcc/$x $mfccdir
-    utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
-    steps/compute_cmvn_stats.sh data/$x exp/make_mfcc/$x $mfccdir
-    utils/fix_data_dir.sh data/$x
-done
+# for x in train test ; do
+#     utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
+#     steps/make_mfcc.sh --cmd "$train_cmd" --nj $nJobs data/$x exp/make_mfcc/$x $mfccdir
+#     utils/fix_data_dir.sh data/$x # some files fail to get mfcc for many reasons
+#     steps/compute_cmvn_stats.sh data/$x exp/make_mfcc/$x $mfccdir
+#     utils/fix_data_dir.sh data/$x
+# done
 time=$(date +"%Y-%m-%d %H:%M:%S")
 echo "Done making MFCC features and computing CMVN Stats. $time" | tee -a $stage.log
 #change this to test, if you want results on the test set
@@ -53,102 +53,102 @@ echo "Done making MFCC features and computing CMVN Stats. $time" | tee -a $stage
 testDir=test
 # Here we start the AM
 
-echo "Train for full monophone model with subset of" | tee -a exp/s1/$stage.log
-time steps/train_mono.sh --nj $nJobs --cmd "$train_cmd" \
-  data/train data/lang exp/s1/mono || exit 1;
-time utils/mkgraph.sh data/lang_test exp/s1/mono exp/s1/mono/graph || exit 1;
-echo "Graph for full monophone model with subset of" | tee -a exp/s1/$stage.log
-time steps/decode.sh --config conf/decode.config --nj $nDecodeJobs --cmd "$decode_cmd" \
-  exp/s1/mono/graph data/test exp/s1/mono/decode || exit 1;
-echo "Decode for full monophone model with subset of" | tee -a exp/s1/$stage.log
+# echo "Train for full monophone model with subset of" | tee -a exp/s1/$stage.log
+# time steps/train_mono.sh --nj $nJobs --cmd "$train_cmd" \
+#   data/train data/lang exp/s1/mono || exit 1;
+# time utils/mkgraph.sh data/lang_test exp/s1/mono exp/s1/mono/graph || exit 1;
+# echo "Graph for full monophone model with subset of" | tee -a exp/s1/$stage.log
+# time steps/decode.sh --config conf/decode.config --nj $nDecodeJobs --cmd "$decode_cmd" \
+#   exp/s1/mono/graph data/test exp/s1/mono/decode || exit 1;
+# echo "Decode for full monophone model with subset of" | tee -a exp/s1/$stage.log
+#
+# echo "---done---"
+for x in 1000 2000 3000 5000 10000; do
 
-echo "---done---"
-# for x in 1000 2000 3000 5000 10000; do
-#
-#   # Train monophone models on a subset of the data
-#   time utils/subset_data_dir.sh data/train $x data/s1/train.$x  ;
-#
-#   for it in 1; do
-#
-#     time=$(date +"%Y-%m-%d %H:%M:%S")
-#     echo "Train iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
-#     # Train monophone models (right now makes no sense to do it only on a subset)
-#     # Note: the --boost-silence option should probably be omitted by default
-#     time steps/train_mono.sh --nj $nJobs --cmd "$train_cmd" \
-#       data/s1/train.$x data/lang exp/s1/mono.$it.$x || exit 1;
-#     time=$(date +"%Y-%m-%d %H:%M:%S")
-#     echo "Trained iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
-#
-#     echo "mkgraph iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
-#     # Monophone decoding
-#     time utils/mkgraph.sh data/lang_test exp/s1/mono.$it.$x exp/s1/mono.$it.$x/graph || exit 1
-#     time=$(date +"%Y-%m-%d %H:%M:%S")
-#     echo "mkgraph iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
-#
-#     echo "decode iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
-#     # note: local/decode.sh calls the command line once for each
-#     # test, and afterwards averages the WERs into (in this case
-#     # exp/mono/decode/
-#     time steps/decode.sh --config conf/decode.config --nj $nDecodeJobs --cmd "$decode_cmd" \
-#       exp/s1/mono.$it.$x/graph data/test exp/s1/mono.$it.$x/decode
-#
-#     time=$(date +"%Y-%m-%d %H:%M:%S")
-#     echo "decode iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
-#   done
-# done
-#
+  # Train monophone models on a subset of the data
+  time utils/subset_data_dir.sh data/train $x data/s1/train.$x  ;
 
-# time=$(date +"%Y-%m-%d %H:%M:%S")
-# echo "Done training monophone models. $time" | tee -a exp/s1/$stage.log
-# # to make sure you keep the results timed and owned
-# for x in exp/s1/*/decode*; do [ -d $x ] && grep WER $x/wer_* | utils/best_wer.sh; \
-# done | sort -n -r -k2 > exp/s1/RESULTS.mono.$USER.$time
+  for it in 1; do
 
-# echo "Starting aligning of monophone model. $time" | tee -a exp/s1/$stage.log
-# # Get alignments from monophone system.
-# steps/align_si.sh --nj $nJobs --cmd "$train_cmd" \
-#   data/s1/train.41442 data/lang exp/s1/mono.1.41442 exp/s1/mono.1.41442_ali || exit 1;
+    time=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "Train iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
+    # Train monophone models (right now makes no sense to do it only on a subset)
+    # Note: the --boost-silence option should probably be omitted by default
+    time steps/train_mono.sh --nj $nJobs --cmd "$train_cmd" \
+      data/s1/train.$x data/lang exp/s1/mono.$it.$x || exit 1;
+    time=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "Trained iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
+
+    echo "mkgraph iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
+    # Monophone decoding
+    time utils/mkgraph.sh data/lang_test exp/s1/mono.$it.$x exp/s1/mono.$it.$x/graph || exit 1
+    time=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "mkgraph iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
+
+    echo "decode iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
+    # note: local/decode.sh calls the command line once for each
+    # test, and afterwards averages the WERs into (in this case
+    # exp/mono/decode/
+    time steps/decode.sh --config conf/decode.config --nj $nDecodeJobs --cmd "$decode_cmd" \
+      exp/s1/mono.$it.$x/graph data/test exp/s1/mono.$it.$x/decode
+
+    time=$(date +"%Y-%m-%d %H:%M:%S")
+    echo "decode iteration $it for monophone models with subset of $x. $time" | tee -a exp/s1/$stage.log
+  done
+done
 
 
-# for it in 1; do
-#   for s in 1500 ; do #  2000 2500; do
-#     for g in 20000; do
-#
-#       time=$(date +"%Y-%m-%d %H:%M:%S")
-#       echo "Start standard triphone models training: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-#       # train tri1 [first triphone pass]
-#       steps/train_deltas.sh --cmd "$train_cmd" \
-#         $s $g data/train data/lang exp/s1/mono.1.12425_ali exp/s1/tri1.$it.$s.$g || exit 1;
-#
-#       time=$(date +"%Y-%m-%d %H:%M:%S")
-#       echo "Start standard triphone models graph: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-#       # First triphone decoding
-#       time utils/mkgraph.sh data/lang_test exp/s1/tri1.$it.$s.$g exp/s1/tri1.$it.$s.$g/graph || exit 1;
-#
-#       time=$(date +"%Y-%m-%d %H:%M:%S")
-#       echo "Start standard triphone models decoding: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-#       time steps/decode.sh  --nj $nDecodeJobs --cmd "$decode_cmd" \
-#         exp/s1/tri1.$it.$s.$g/graph data/$testDir exp/s1/tri1.$it.$s.$g/decode
-#     done
-#   done
+time=$(date +"%Y-%m-%d %H:%M:%S")
+echo "Done training monophone models. $time" | tee -a exp/s1/$stage.log
+# to make sure you keep the results timed and owned
+for x in exp/s1/*/decode*; do [ -d $x ] && grep WER $x/wer_* | utils/best_wer.sh; \
+done | sort -n -r -k2 > exp/s1/RESULTS.mono.$USER.$time
 
-  # for s in 2000; do
-  #   for g in 10000 30000 40000; do
-  #     time=$(date +"%Y-%m-%d %H:%M:%S")
-  #     echo "Start standard triphone models training: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-  #     # train tri1 [first triphone pass]
-  #     steps/train_deltas.sh --cmd "$train_cmd" \
-  #       $s $g data/train data/lang exp/s1/mono.1.12425_ali exp/s1/tri1.$it.$s.$g || exit 1;
-  #
-  #     time=$(date +"%Y-%m-%d %H:%M:%S")
-  #     echo "Start standard triphone models graph: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-  #     # First triphone decoding
-  #     time utils/mkgraph.sh data/lang_test exp/s1/tri1.$it.$s.$g exp/s1/tri1.$it.$s.$g/graph || exit 1;
-  #
-  #     time=$(date +"%Y-%m-%d %H:%M:%S")
-  #     echo "Start standard triphone models decoding: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
-  #     time steps/decode.sh  --nj $nDecodeJobs --cmd "$decode_cmd" \
-  #       exp/s1/tri1.$it.$s.$g/graph data/$testDir exp/s1/tri1.$it.$s.$g/decode
-  #   done
-  # done
-# done
+echo "Starting aligning of monophone model. $time" | tee -a exp/s1/$stage.log
+# Get alignments from monophone system.
+steps/align_si.sh --nj $nJobs --cmd "$train_cmd" \
+  data/train data/lang exp/s1/mono exp/s1/mono_ali || exit 1;
+
+
+for it in 1; do
+  for s in 1500 2000 2500; do
+    for g in 20000; do
+
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models training: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      # train tri1 [first triphone pass]
+      steps/train_deltas.sh --cmd "$train_cmd" \
+        $s $g data/train data/lang exp/s1/mono_ali exp/s1/tri1.$it.$s.$g || exit 1;
+
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models graph: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      # First triphone decoding
+      time utils/mkgraph.sh data/lang_test exp/s1/tri1.$it.$s.$g exp/s1/tri1.$it.$s.$g/graph || exit 1;
+
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models decoding: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      time steps/decode.sh  --nj $nDecodeJobs --cmd "$decode_cmd" \
+        exp/s1/tri1.$it.$s.$g/graph data/$testDir exp/s1/tri1.$it.$s.$g/decode
+    done
+  done
+
+  for s in 2000; do
+    for g in 10000 30000 40000; do
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models training: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      # train tri1 [first triphone pass]
+      steps/train_deltas.sh --cmd "$train_cmd" \
+        $s $g data/train data/lang exp/s1/mono_ali exp/s1/tri1.$it.$s.$g || exit 1;
+
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models graph: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      # First triphone decoding
+      time utils/mkgraph.sh data/lang_test exp/s1/tri1.$it.$s.$g exp/s1/tri1.$it.$s.$g/graph || exit 1;
+
+      time=$(date +"%Y-%m-%d %H:%M:%S")
+      echo "Start standard triphone models decoding: it:$it, s:$s, g:$g. $time" | tee -a exp/s1/$stage.log
+      time steps/decode.sh  --nj $nDecodeJobs --cmd "$decode_cmd" \
+        exp/s1/tri1.$it.$s.$g/graph data/$testDir exp/s1/tri1.$it.$s.$g/decode
+    done
+  done
+done
