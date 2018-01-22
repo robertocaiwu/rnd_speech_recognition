@@ -116,9 +116,9 @@ def filenameSplit(utts):
 
 #detect train/dev/test in the filenames of the ids.
 def filenameSplit2(utts):
-    test1 = [utt for utt in utts if 'test1' in utt['fileid']]
-    test2 = [utt for utt in utts if 'test2' in utt['fileid']]
-    test3 = [utt for utt in utts if 'test3' in utt['fileid']]
+    test1 = [utt for utt in utts if 'test_f1m' in utt['fileid']]
+    test2 = [utt for utt in utts if 'test_f05m' in utt['fileid']]
+    test3 = [utt for utt in utts if 'test_s1m' in utt['fileid']]
 
     return test1, test2, test3
 
@@ -303,18 +303,18 @@ if __name__ == '__main__':
         print 'Export to kaldi train/test dirs...'
 
         #train, test = simpleTrainTestSplit(utterances)
-        test1, test2, test3 = filenameSplit(utterances)
+        test1, test2, test3 = filenameSplit2(utterances)
 
         # print 'Writing train...'
         # writeKaldiDataFolder('data/train/', train,args.postfix, args.wav_extension)
         # print 'Writing dev...'
         # writeKaldiDataFolder('data/dev/', dev, args.postfix, args.wav_extension)
         print 'Writing test f1m...'
-        writeKaldiDataFolder('data/test1/', test, args.postfix, args.wav_extension)
+        writeKaldiDataFolder('data/test1/', test1, args.postfix, args.wav_extension)
         print 'Writing test f05m...'
-        writeKaldiDataFolder('data/test2/', test, args.postfix, args.wav_extension)
+        writeKaldiDataFolder('data/test2/', test2, args.postfix, args.wav_extension)
         print 'Writing test s01m...'
-        writeKaldiDataFolder('data/test3/', test, args.postfix, args.wav_extension)
+        writeKaldiDataFolder('data/test3/', test3, args.postfix, args.wav_extension)
         # print 'Writing all...'
         # writeKaldiDataFolder('data/all/', utterances, args.postfix, args.wav_extension)
 
