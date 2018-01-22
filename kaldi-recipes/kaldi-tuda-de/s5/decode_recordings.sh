@@ -25,6 +25,7 @@ fi
 
 ## Extract recordings to data/extracted directory and run the following:
 # python local/Adapt_recordings_to_tuda.py
+# python local/find_waveID.py
 
 python local/data_prepare_test.py -f data/waveID.txt
 for x in test1 test2 test3; do

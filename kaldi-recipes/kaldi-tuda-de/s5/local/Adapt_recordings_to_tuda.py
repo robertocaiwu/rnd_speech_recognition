@@ -48,7 +48,7 @@ def get_time(n):
     s, ms = divmod(round(t * 1000)+(1000*n), 1000)  # (1236472051, 807)
     fl = '%s' % (time.strftime('%Y-%m-%d-%H-%M-%S', time.gmtime(s)))
     return fl
-    
+
 
 def make_xml(filename, speaker_id, sentence_id, sentence, cleaned_sentence):
 
@@ -59,12 +59,16 @@ def make_xml(filename, speaker_id, sentence_id, sentence, cleaned_sentence):
     ET.SubElement(root, "gender").text = gender = 'Male'
     ET.SubElement(root, "ageclass").text = ageclass = 'NA'
     ET.SubElement(root, "sentence_id").text = sentence_id
-    ET.SubElement(root, "sentence").text = str(sentence)
-    ET.SubElement(root, "cleaned_sentence").text = str(cleaned_sentence)
+    try:
+        ET.SubElement(root, "sentence").text = str(sentence)
+        ET.SubElement(root, "cleaned_sentence").text = str(cleaned_sentence)
+    except:
+        ET.SubElement(root, "sentence").text = sentence
+        ET.SubElement(root, "cleaned_sentence").text = cleaned_sentence
     ET.SubElement(root, "corpus").text = corpus = 'WIKI'
     ET.SubElement(root, "muttersprachler").text = muttersprachler = 'Ja'
     ET.SubElement(root, "bundesland").text = bundesland = 'NA'
-    sourceurls = ET.SubElement(root, "sourceurls") 
+    sourceurls = ET.SubElement(root, "sourceurls")
     ET.SubElement(sourceurls, "url").text = sourceurls = 'NA'
 
     print(filename)
@@ -89,13 +93,13 @@ def read_promts(promptsfn):
 
                 prompts[afn] = ts.replace(';',',')
     return prompts
-    
+
 def get_audio_directories(newdir, audiodir):
     global transcripts
     num = 1
     check_directories(newdir)
     for subdir in sorted(os.listdir(audiodir))[:]:
-        
+
         subdirfn  = '%s/%s'   % (audiodir, subdir)
         wavdirfn  = '%s/wav'  % subdirfn
 
@@ -104,7 +108,7 @@ def get_audio_directories(newdir, audiodir):
         print(subdirfn)
         prompts = read_promts(promptsfn)
 #         print(prompts)
-        
+
         for key, promt in prompts.items():
             gettime = get_time(num)
             xml_fn = '%s/%s' % (newdir,gettime)
@@ -118,7 +122,7 @@ def get_audio_directories(newdir, audiodir):
             if os.path.isfile (wav_file):
                 shutil.copy(wav_file,'%s/%s.wav' % (newdir,cfn))
             num += 1
-            
+
 
 if __name__ == '__main__':
     scenarios = ['test_f1m', 'test_f05m', 'test_s1m']
@@ -128,4 +132,3 @@ if __name__ == '__main__':
         check_directories(test_dir)
         audio_directory = 'data/extracted/%s' % (test)
         audio_directories = get_audio_directories(test_dir, audio_directory)
-
