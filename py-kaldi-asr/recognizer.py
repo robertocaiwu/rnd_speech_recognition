@@ -6,12 +6,13 @@ import wave
 import audioop
 import sys
 import os
+sys.path.insert(0, '/home/rob/speech/py-kaldi-asr')
 from kaldiasr.nnet3 import KaldiNNet3OnlineModel, KaldiNNet3OnlineDecoder
 
-MODELDIR    = 'data/models/nnet3_de'
-MODEL       = 'nnet_tdnn_a'
+MODELDIR    = 'data/models/nnet3_de/'
+MODEL       = 'tdnn_250'
 WAVFILES    = [ 'data/2015-01-27-12-32-58_Kinect-Beam.wav', 'data/2015-01-27-12-34-46_Kinect-Beam.wav']
-DATADIR     = './data/'
+DATADIR     = './data/audio/'
 
 # Options
 CHUNK = 1024#128 # The size of each audio chunk coming from the input device.
@@ -21,9 +22,10 @@ RATE = 48000 #16000 # Speech recognition only works well with this rate.  Don't 
 RECORD_SECONDS = 5 # Number of seconds to record, can be changed.
 WAVE_OUTPUT_FILENAME_48 = "output48.wav" # Where to save the recording from the microphone.
 WAVE_OUTPUT_FILENAME_16 = "output16.wav"
+
 def downsampleWav(src, dst, inrate=48000, outrate=16000, inchannels=1, outchannels=1):
 	if not os.path.exists(src):
-		print 'Source not found!'
+		print( 'Source not found!')
 		return False
 
 	if not os.path.exists(os.path.dirname(dst)):
@@ -33,7 +35,7 @@ def downsampleWav(src, dst, inrate=48000, outrate=16000, inchannels=1, outchanne
 		s_read = wave.open(src, 'r')
 		s_write = wave.open(dst, 'w')
 	except:
-		print 'Failed to open files!'
+		print('Failed to open files!')
 		return False
 
 	n_frames = s_read.getnframes()
@@ -44,21 +46,21 @@ def downsampleWav(src, dst, inrate=48000, outrate=16000, inchannels=1, outchanne
 		if outchannels == 1 & inchannels != 1:
 			converted[0] = audioop.tomono(converted[0], 2, 1, 0)
 	except:
-		print 'Failed to downsample wav'
+		print ('Failed to downsample wav')
 		return False
 
 	try:
 		s_write.setparams((outchannels, 2, outrate, 0, 'NONE', 'Uncompressed'))
 		s_write.writeframes(converted[0])
 	except:
-		print 'Failed to write wav'
+		print ('Failed to write wav')
 		return False
 
 	try:
 		s_read.close()
 		s_write.close()
 	except:
-		print 'Failed to close wav files'
+		print ('Failed to close wav files')
 		return False
 
 	return True
@@ -104,26 +106,22 @@ def save_audio(wav_file):
 	wf.writeframes(b''.join(frames))
 	wf.close()
 
-	downsampleWav(DATADIR + wav_file, DATADIR + WAVE_OUTPUT_FILENAME_16)
+	# downsampleWav(DATADIR + wav_file, DATADIR + WAVE_OUTPUT_FILENAME_16)
 
 # Run the thing!
 if __name__ == '__main__':
-	text = raw_input("What language do you want to recognize? en/de")
+	text = input("What language do you want to recognize? en/de")
 
 	if(text=='en'):
 		MODELDIR    = 'data/models/nnet3_en'
-		print '%s loading model...' % MODEL
-		kaldi_model = KaldiNNet3OnlineModel (MODELDIR, MODEL)
-		print '%s loading model... done.' % MODEL
 	elif(text=='de'):
 		MODELDIR    = 'data/models/nnet3_de'
-		print '%s loading model...' % MODEL
-		kaldi_model = KaldiNNet3OnlineModel (MODELDIR, MODEL)
-		print '%s loading model... done.' % MODEL
-
+	print( '%s loading model...' % MODEL)
+	kaldi_model = KaldiNNet3OnlineModel (MODELDIR, MODEL, acoustic_scale=1.0, beam=7.0, frame_subsampling_factor=3)
+	print( '%s loading model... done.' % MODEL)
 
 	while(True):
-		text = raw_input("Test speech recognition? y/n")
+		text = input("Test speech recognition? y/n")
 		if(text=='y'):
 			save_audio(WAVE_OUTPUT_FILENAME_48)
 			decoder = KaldiNNet3OnlineDecoder (kaldi_model)
@@ -131,14 +129,13 @@ if __name__ == '__main__':
 			print(WAVFILE)
 			if decoder.decode_wav_file(WAVFILE):
 				s = decoder.get_decoded_string()
-				print "Utterance: ", unicode(s[0], 'utf-8').encode('utf-8')
+				print ("Utterance: ", unicode(s[0], 'utf-8').encode('utf-8'))
 		elif(text=='n'):
 			break
 		elif(text=='l'):
-			WAVFILES    = [ 'data/2015-01-27-12-32-58_Kinect-Beam.wav', \
-					'data/2015-01-27-12-34-36_Kinect-Beam.wav', \
-					'data/2015-01-27-12-34-46_Kinect-Beam.wav']
-			decoder = KaldiNNet3OnlineDecoder (kaldi_model)
-			if decoder.decode_wav_file(WAVFILES[0]):
-				s = decoder.get_decoded_string()
-				print "Utterance: ", unicode(s[0], 'utf-8').encode('utf-8')
+			for wavfile in os.listdir(DATADIR + 'default'):
+
+				decoder = KaldiNNet3OnlineDecoder (kaldi_model)
+				if decoder.decode_wav_file(wavfile):
+					s = decoder.get_decoded_string()
+					print ("Utterance: ", unicode(s[0], 'utf-8').encode('utf-8'))
