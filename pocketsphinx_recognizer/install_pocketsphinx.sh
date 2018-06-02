@@ -14,12 +14,15 @@
 
 # create list of packages to install
 packagelist=(
+  gcc
   libtool
   automake
+  autoconf
   bison
   swig
   python-pyaudio
   python3-pyaudio
+  libpulse-dev
 )
 
 ### install debian packages listed in array above
@@ -36,7 +39,7 @@ cd sphinxbase
 ./autogen.sh
 ./configure
 make clean
-make check
+make
 sudo make install
 cd ..
 
@@ -54,5 +57,5 @@ cd pocketsphinx
 ./autogen.sh
 ./configure
 make clean
-make check
+make
 sudo make install
