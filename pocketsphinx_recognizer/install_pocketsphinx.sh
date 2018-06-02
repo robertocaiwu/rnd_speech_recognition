@@ -14,6 +14,7 @@
 
 # create list of packages to install
 packagelist=(
+  libtool
   automake
   bison
   swig
@@ -25,16 +26,22 @@ packagelist=(
 sudo apt-get update
 sudo apt-get install -y ${packagelist[@]}
 
-git clone git@github.com:cmusphinx/sphinxbase.git
 
+if [ ! -d sphinxbase ]
+then
+  git clone git@github.com:cmusphinx/sphinxbase.git
+fi
 cd sphinxbase
 ./autogen.sh
 ./configure
 make check
 sudo make install
-
 cd ..
-git clone git@github.com:cmusphinx/pocketsphinx.git
+
+if [ ! -d pocketsphinx ]
+then
+  git clone git@github.com:cmusphinx/pocketsphinx.git
+fi
 
 cd pocketsphinx
 ./autogen.sh
