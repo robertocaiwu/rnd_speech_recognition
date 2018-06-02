@@ -13,9 +13,9 @@ import os
 
 # Paths
 BASE_PATH = os.path.dirname(os.path.realpath(__file__))
-HMDIR = os.path.join(BASE_PATH, "hmm")
-LMDIR = os.path.join(BASE_PATH, "lm/cmusphinx-5.0-en-us.lm.dmp")
-DICTD = os.path.join(BASE_PATH, "dict/cmu07a.dic")
+HMDIR = os.path.join(BASE_PATH, "hmm/en-us/cmusphinx-en-us.tar.gz")
+LMDIR = os.path.join(BASE_PATH, "lm/en-us/en-us.lm.bin")
+DICTD = os.path.join(BASE_PATH, "dict/en-us/cmudict-en-us.dict")
 DATADIR = "./data/"
 # Options
 CHUNK = 128 # The size of each audio chunk coming from the input device.
@@ -24,8 +24,8 @@ CHANNELS = 2
 RATE = 16000 # Speech recognition only works well with this rate.  Don't change unless your microphone demands it.
 RECORD_SECONDS = 5 # Number of seconds to record, can be changed.
 WAVE_OUTPUT_FILENAME = "output.wav" # Where to save the recording from the microphone.
-wav_file = "003.wav"
-wav_files = ["001.wav", "002.wav", "003.wav", "004.wav", "005.wav", "006.wav"]
+# wav_file = "003.wav"
+# wav_files = ["001.wav", "002.wav", "003.wav", "004.wav", "005.wav", "006.wav"]
 
 def find_device(p, tags):
     """
@@ -53,17 +53,17 @@ def save_audio(wav_file):
     """
     p = pyaudio.PyAudio()
 
-    # device = find_device(p, ["pulse"])#"input", "mic", "audio", 
-    # device_info = p.get_device_info_by_index(device)
-    # channels = int(device_info['maxInputChannels'])
+    device = find_device(p, ["pulse"])#"input", "mic", "audio",
+    device_info = p.get_device_info_by_index(device)
+    channels = int(device_info['maxInputChannels'])
 
     stream = p.open(
         format=FORMAT,
         channels=CHANNELS,
         rate=RATE,
         input=True,
-        frames_per_buffer=CHUNK
-        # input_device_index=device
+        frames_per_buffer=CHUNK,
+        input_device_index=device
     )
 
     print("recording...")
@@ -125,4 +125,4 @@ if __name__ == '__main__':
     save_audio(WAVE_OUTPUT_FILENAME)
     # result = recognize(wav_file)
     result = recognize(WAVE_OUTPUT_FILENAME)
-    print "You just said: {0}".format(result)
+    print("You just said: {0}".format(result))
