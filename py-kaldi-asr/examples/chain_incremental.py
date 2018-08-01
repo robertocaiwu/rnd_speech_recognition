@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*- 
 
 #
-# Copyright 2016, 2017 Guenter Bartsch
+# Copyright 2016, 2017, 2018 Guenter Bartsch
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,19 +35,20 @@ from kaldiasr.nnet3 import KaldiNNet3OnlineModel, KaldiNNet3OnlineDecoder
 # this is useful for benchmarking purposes
 NUM_DECODER_RUNS = 1
 
-MODELDIR    = 'data/models/kaldi-chain-voxforge-de-latest'
-MODEL       = 'tdnn_sp'
-WAVFILE     = 'data/gsp1.wav'
+MODELDIR    = 'data/models/kaldi-generic-en-tdnn_sp-latest'
+# MODELDIR    = 'data/models/kaldi-generic-de-tdnn_sp-latest'
+WAVFILE     = 'data/dw961.wav'
+# WAVFILE     = 'data/gsp1.wav'
 
-print '%s loading model...' % MODEL
+print '%s loading model...' % MODELDIR
 time_start = time()
-kaldi_model = KaldiNNet3OnlineModel (MODELDIR, MODEL, acoustic_scale=1.0, beam=7.0, frame_subsampling_factor=3.0)
-print '%s loading model... done, took %fs.' % (MODEL, time()-time_start)
+kaldi_model = KaldiNNet3OnlineModel (MODELDIR)
+print '%s loading model... done, took %fs.' % (MODELDIR, time()-time_start)
 
-print '%s creating decoder...' % MODEL
+print '%s creating decoder...' % MODELDIR
 time_start = time()
 decoder = KaldiNNet3OnlineDecoder (kaldi_model)
-print '%s creating decoder... done, took %fs.' % (MODEL, time()-time_start)
+print '%s creating decoder... done, took %fs.' % (MODELDIR, time()-time_start)
 
 for i in range(NUM_DECODER_RUNS):
 
@@ -81,7 +82,9 @@ for i in range(NUM_DECODER_RUNS):
 
         decoder.decode(wavf.getframerate(), np.array(samples, dtype=np.float32), finalize)
 
-        print "%6.3fs: %5d frames (%6.3fs) decoded." % (time()-time_start, num_frames, float(num_frames) / float(wavf.getframerate()) )
+        s, l = decoder.get_decoded_string()
+
+        print "%6.3fs: %5d frames (%6.3fs) decoded. %s" % (time()-time_start, num_frames, float(num_frames) / float(wavf.getframerate()), s)
 
     wavf.close()
 
@@ -90,8 +93,8 @@ for i in range(NUM_DECODER_RUNS):
     print "*****************************************************************"
     print "**", WAVFILE
     print "**", s
-    print "** %s likelihood:" % MODEL, l
+    print "** %s likelihood:" % MODELDIR, l
     print "*****************************************************************"
     print
-    print "%s decoding took %8.2fs" % (MODEL, time() - time_start )
+    print "%s decoding took %8.2fs" % (MODELDIR, time() - time_start )
 
