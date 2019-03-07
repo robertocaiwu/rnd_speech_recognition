@@ -1,0 +1,5 @@
+numpy
+Cython
+pyaudio
+sounddevice
+webrtcvad
