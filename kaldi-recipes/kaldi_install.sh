@@ -80,8 +80,9 @@ if [ $stage -le 2 ]; then
     echo $PKG_CONFIG_PATH
 
     # Installation of python packages used by Kaldi wrapper
+    wget https://raw.githubusercontent.com/robertocaiwu/rnd_speech_recognition/master/kaldi-recipes/requirements.txt --output-document=$HOME/speech/speech_recognition/requirements.txt
     pip install --upgrade pip
-    pip install --user numpy Cython pyaudio sounddevice webrtcvad py-kaldi-asr
+    pip install --user -r "$HOME/speech/speech_recognition/requirements.txt"
 fi
 
 if [ $stage -le 3 ]; then
