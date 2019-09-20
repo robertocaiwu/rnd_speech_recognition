@@ -1,0 +1,6 @@
+numpy
+Cython
+pyaudio
+sounddevice
+webrtcvad
+py-kaldi-asr
