@@ -9,6 +9,9 @@ elif [ $# -eq 1 ]; then
 elif [ $# -eq 2 ]; then
     stage=$1
     install_kaldi=$2
+elif [ $# -eq 3 ]; then
+    stage=$1
+    install_kaldi=false
 else
     exit 1
 fi
@@ -51,14 +54,15 @@ if [ $stage -le 1 ]; then
     fi
 
     if [ "$install_kaldi" == true ]; then
+      NPROC=$(nproc)
       make clean
       cd kaldi/tools
-      make -j 4
+      make -j $NPROC
       cd ../src
       ./configure --shared
       make clean
-      make depend -j4
-      make -j 4
+      make depend -j $NPROC
+      make -j $NPROC
     fi
 fi
 
@@ -77,5 +81,12 @@ if [ $stage -le 2 ]; then
 
     # Installation of python packages used by Kaldi wrapper
     pip install --upgrade pip
-    pip install --user -r "$HOME/speech/speech_recognition/requirements.txt"
+    pip install --user numpy Cython pyaudio sounddevice webrtcvad py-kaldi-asr
+fi
+
+if [ $stage -le 3 ]; then
+    # Installing library for performing speech recognition, with support for several engines and APIs, online and offline.
+    git clone --single-branch --branch feature/py-kalid-asr_support git@github.com:robertocaiwu/speech_recognition.git
+    cd ~/speech/speech_recognition
+    python setup.py install
 fi
