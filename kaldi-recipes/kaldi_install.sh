@@ -27,9 +27,12 @@ if [ $stage -le 0 ]; then
       libatlas3-base
       libatlas-base-dev
       python-pip
+      python3-pip
       cython
       portaudio19-dev
       python3-dev
+      zlib1g-dev
+      libtool
     )
     ### install debian packages listed in array above
     sudo apt-get update
@@ -82,12 +85,13 @@ if [ $stage -le 2 ]; then
     # Installation of python packages used by Kaldi wrapper
     wget https://raw.githubusercontent.com/robertocaiwu/rnd_speech_recognition/master/kaldi-recipes/requirements.txt --output-document=$HOME/speech/speech_recognition/requirements.txt
     pip install --upgrade pip
-    pip install --user -r "$HOME/speech/speech_recognition/requirements.txt"
+    pip install numpy
+    pip install --user -r "$HOME/speech/requirements.txt"
 fi
 
 if [ $stage -le 3 ]; then
     # Installing library for performing speech recognition, with support for several engines and APIs, online and offline.
-    git clone --single-branch --branch feature/py-kalid-asr_support git@github.com:robertocaiwu/speech_recognition.git
+    git clone --single-branch --branch feature/py-kaldi-asr_support git@github.com:robertocaiwu/speech_recognition.git
     cd ~/speech/speech_recognition
     python setup.py install
 fi
