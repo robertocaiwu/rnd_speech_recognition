@@ -70,6 +70,8 @@ if [ $stage -le 1 ]; then
 fi
 
 if [ $stage -le 2 ]; then
+    ln -s $HOME/speech/kaldi/tools/openfst-*.*.*/ $HOME/speech/kaldi/tools/openfst
+
     echo "kaldi_root=$HOME/speech/kaldi
     Name: kaldi-asr
     Description: kaldi-asr speech recognition toolkit
@@ -80,13 +82,16 @@ if [ $stage -le 2 ]; then
 
     LD_LIBRARY_PATH=$HOME/speech/kaldi/src/lib:$LD_LIBRARY_PATH
     PKG_CONFIG_PATH=$HOME/speech:$PKG_CONFIG_PATH
-    echo $PKG_CONFIG_PATH
+    echo "export LD_LIBRARY_PATH=$HOME/speech/kaldi/src/lib:$LD_LIBRARY_PATH" >> ~/.bashrc
+    echo "export PKG_CONFIG_PATH=$HOME/speech:$PKG_CONFIG_PATH" >> ~/.bashrc
+    source ~/.bashrc
 
     # Installation of python packages used by Kaldi wrapper
-    wget https://raw.githubusercontent.com/robertocaiwu/rnd_speech_recognition/master/kaldi-recipes/requirements.txt --output-document=$HOME/speech/speech/requirements.txt
+    wget https://raw.githubusercontent.com/robertocaiwu/rnd_speech_recognition/master/kaldi-recipes/requirements.txt --output-document=$HOME/speech/requirements.txt
     pip install --upgrade pip
-    pip install numpy
-    pip install --user -r "$HOME/speech/requirements.txt"
+    cat $HOME/speech/requirements.txt | xargs -n 1 -L 1 pip install --user
+    # pip install --user numpy
+    # pip install --user -r "$HOME/speech/requirements.txt"
 fi
 
 if [ $stage -le 3 ]; then
