@@ -80,9 +80,9 @@ if [ $stage -le 2 ]; then
     Cflags: -I\${kaldi_root}/src  -I\${kaldi_root}/tools/openfst/include -I\${kaldi_root}/tools/ATLAS_headers/include
     " > ~/speech/kaldi-asr.pc
 
-    LD_LIBRARY_PATH=$HOME/speech/kaldi/src/bin
+    LD_LIBRARY_PATH=$HOME/speech/kaldi/src/lib
     PKG_CONFIG_PATH=$HOME/speech
-    echo "export LD_LIBRARY_PATH=$HOME/speech/kaldi/src/bin:\$LD_LIBRARY_PATH" >> ~/.bashrc
+    echo "export LD_LIBRARY_PATH=$HOME/speech/kaldi/src/lib:\$LD_LIBRARY_PATH" >> ~/.bashrc
     echo "export PKG_CONFIG_PATH=$HOME/speech:\$PKG_CONFIG_PATH" >> ~/.bashrc
     source ~/.bashrc
 
